@@ -66,7 +66,7 @@ function atualizarDados(event){
 
 
         for (let cont = 0;  cont <clientes.length   ;cont++) {
-            if (usuarioLogado[2] === clientes[cont].cpf) {
+            if (usuarioLogado.cpf=== clientes[cont].cpf) {
                 if (novoEmail !== '') cliente[cont].email = novoEmail;
                 if (novoEndereco !== "") cliente[cont].endereco = novoEndereco;
                 if (novoTelefone !== "") cliente[cont].telefone = novoTelefone;
@@ -76,6 +76,20 @@ function atualizarDados(event){
         alert("Dados atualizados com sucesso!");
     }
 };
+function excluirReservasCliente(cliente) { 
+    reservas = reservas.filter(reserva => reserva.cliente !== cliente);
+    }
+
+function excluirCadastro(){
+    for (let cont = 0;  cont <clientes.length   ;cont++) {
+        if (usuarioLogado.cpf === clientes[cont].cpf) {
+            excluirReservasCliente(clientes[cont])
+            clientes = clientes.filter(cliente => cliente !== clientes[cont]);
+            usuarioLogado=null
+        }}}
+
+//redirecionar para inicio
+
 
 //-----------LOGIN---------- precisa do array clientes. E identificar os IDs
 function Login(event){
@@ -199,7 +213,8 @@ function errorInput(input, mensagem) {
 }
 //-----------------RESERVAS---------------------
 class Reserva {
-    constructor(cliente, checkIn, checkOut, quarto) {
+    constructor(id,cliente, checkIn, checkOut, quarto) {
+        this.id= id
         this.cliente = cliente
         this.checkIn = checkIn
         this.checkOut = checkOut
@@ -256,7 +271,7 @@ function calcularPrecoReserva(event) {
         let clienteEncontrado = false;
     
         for (let cont = 0; cont < clientes.length; cont++) {
-            if (usuarioLogado[2] === clientes[cont].cpf) {
+            if (usuarioLogado.cpf === clientes[cont].cpf) {
                 clienteEncontrado = true;
                 if (!clienteEncontrado) {
                     alert("Cadastro do cliente não encontrado.");
@@ -272,3 +287,7 @@ function calcularPrecoReserva(event) {
     
 
     }
+    //--------------------QUARTOS-----------------
+     
+
+//======================================================FUNCIONARIOS=====================================================
