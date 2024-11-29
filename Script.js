@@ -259,6 +259,7 @@ function calcularPrecoReserva(event) {
 
         if (!usuarioLogado) {
             alert("Faça login para continuar.");
+            window.location.href = "login.html";
             return;
         }
         const tipoQuarto = document.getElementById("tipoQuarto").value;
