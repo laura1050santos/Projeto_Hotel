@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reserva de quartos</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header>
+    <img src="../imagens/logo.png" width="200px">
+    <nav>
+      <button onclick="irParaInicio()">Início</button>
+      <button onclick="irparaLogin()">login</button>
+
+        <button onclick="irParaSobreNos()">Sobre Nós</button>
+        <button onclick="irParaAcomodacoesFunc()">Acomodações</button>
+        <button onclick="irParaContabilidade()">Contabilidade</button>
+        <button onclick="irParaFazerReserva()">Fazer Reserva</button>
+        <button onclick="irParaAtualizarCadastro()">Atualizar Cadastro</button>
+        <button onclick="fazerLogout()">Fazer Logout</button>
+  </nav>
+  </header>
+  <main class="login-box">
+    <div id="reservarquarto">Nova Reserva</div>
+    <form id="formReserva" onsubmit="event.preventDefault(); calcularPreco();">
+
+      <label for="cpfHospede">Hóspede</label>  
+     <input type="text" id="cpfHospede" placeholder="digite o cpf do cliente para fazer a reserva" required>
+    
+      <label for="nomeQuarto">Tipo de Quarto:</label>
+
+        <select id="nomeQuarto" required>
+            <option value="Suite Luxo" id ="Suite Luxo"> Suite Luxo(R$250/dia)</option>
+            <option value="Suite Master" id ="Suite Master" >Suite Master (R$300/dia)</option>
+            <option value="Suite Simples" id="Suite Simples">Suite Simples (R$150/dia)</option>
+            <option value="Suite Presidencial" id="Suite Presidencial">Suite Presidencial (R$500/dia)</option>
+            <option value="Suite Executiva" id ="Suite Executiva">Suite Executiva (R$350/dia)</option>
+            <option value="Family Suite" id="Family Suite">Family Suite (R$400/dia)</option>
+
+        </select>
+
+        <label for="checkIn">Data Check-in:</label>
+        <input type="date" id="checkIn" required>
+
+        <label for="checkOut">Data Check-out:</label>
+        <input type="date" id="checkOut" required>
+
+        <button type="submit">Calcular Preço</button>
+    </form>
+    <p id="precoTotal" style="margin-top: 20px; font-weight: bold;"></p>
+    <div id="buttonsReserva">
+        <button id="confirmarReserva" style="display: none;" onclick="confirmarReservaHospede()" >ConfirmarReserva</button>
+        <button id="cancelarReserva" style="display: none;" onclick="cancelarReserva()">Cancelar Reserva</button>
+    </div>
+    <a href="#" class="link">Gerenciar reservas já existentes</a>
+     <!--essa parte leva pra um funcionario fazer login-->
+  <script src="../script.js"></script>
+    </main>
+</body>
+</html>
