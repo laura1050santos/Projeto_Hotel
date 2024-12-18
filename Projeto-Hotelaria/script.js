@@ -1,5 +1,4 @@
 // ========== Classes ==========
-
 // Classe Quartos
 class Quartos {
     constructor(nome, numero, preco) {
@@ -37,7 +36,8 @@ class Usuario {
 let quartos = [];
 let reservas = [];
 let usuarios = [];
-usuarios.push(user=new Usuario('teste','1','2,','3','5','6'))
+let logs=[]
+usuarios.push(user = new Usuario('teste', '1', '2,', '3', '5', '6'))
 let clienteLogado = null;
 let funcionarioLogado = null;
 let nomeIndex = 0
@@ -57,8 +57,10 @@ const precosPorNome = {
 };
 
 function buscar_por_cpf(cpf) {
-    let sla =usuarios.find(usuario => usuario.cpf === cpf);
-    return sla
+    if (validarCPF(cpf)) {
+        let usuario = usuarios.find(usuario => usuario.cpf === cpf);
+        return usuario
+    }
 }
 
 // ========== Inicialização de Quartos ==========
@@ -76,8 +78,8 @@ for (let andar = 1; andar <= 5; andar++) {
     }
 }
 // Função para verificar se as datas conflitam com as reservas existentes
-function achar_quartos_nome(nomeQuarto){
-    let quartosEcontrados= quartos.filter(q=> nomeQuarto === q.nome)
+function achar_quartos_nome(nomeQuarto) {
+    let quartosEcontrados = quartos.filter(q => nomeQuarto === q.nome)
     return quartosEcontrados
 }
 function verificarReservasQuarto(numero, CheckIn, CheckOut) {
@@ -98,17 +100,17 @@ function verificarReservasQuarto(numero, CheckIn, CheckOut) {
 }
 
 // ========== Funções de Usuários ==========
-localStorage.setItem('reservas', JSON.stringify(reservas))
-
 function salvarDados() {
     localStorage.setItem('usuarios', JSON.stringify(usuarios));
     localStorage.setItem("clienteLogado", JSON.stringify(clienteLogado));
     localStorage.setItem("funcionarioLogado", JSON.stringify(funcionarioLogado));
+    localStorage.setItem('reservas', JSON.stringify(reservas));
+
 }
 
 function carregarDados() {
     const reservasSalvas = localStorage.getItem('reservas')
-    if (reservasSalvas) reservas = JSON.parse(reservasSalvas);
+    if (reservasSalvas) reservas = JSON.parse(localStorage.getItem('reservas'));
 
     const usuariosSalvos = localStorage.getItem('usuarios');
     if (usuariosSalvos) usuarios = JSON.parse(usuariosSalvos);
@@ -119,19 +121,36 @@ function carregarDados() {
     const FuncSalvo = localStorage.getItem("funcionarioLogado")
     if (FuncSalvo) funcionarioLogado = JSON.parse(localStorage.getItem("funcionarioLogado"));
 }
+function carregarLogs(){
+    const logsalvo = localStorage.getItem("logs")
+    if (logsalvo) logs = JSON.parse(localStorage.getItem("log"));
+
+}
 carregarDados();
-salvarDados()
+salvarDados();
+carregarLogs();
 
 function realizarCadastro(nome, cpf, data, endereco, email, telefone, senha) {
-    const novoUsuario = new Usuario(nome, cpf, data, endereco, email, telefone, senha);
-    usuarios.push(novoUsuario);
-    salvarDados();
-    alert("Cadastro realizado com sucesso!");
-    window.location.href = "../login.html";
+    if (!verificarCpfRepetido(cpf) || !validarCPF(cpf) || !verificarEmailRepetido(email) || !checkInputEmail(email) || !validarTelefone(telefone) || !checkInputEndereço(endereco)) {
+        return false
+    } else {
+        let telefone_ = null
+        const novoUsuario = new Usuario(nome, cpf, data, endereco, email, telefone_ = formatarTelefone(telefone), senha);
+        usuarios.push(novoUsuario);
+        gerarLog('cadastro', novoUsuario)
+        salvarDados();
+        alert("Cadastro realizado com sucesso!");
+        window.location.href = "../login.html";
+    }
 }
 function realizarLogin(email, senha) {
     carregarDados()
-    clienteLogado = usuarios.find(user => user.email === email && user.senha === senha);
+    if (!checkInputEmail(email)) {
+        return false
+    }
+    // COLOCAR HASH PARA COMPARAR AS SENHAS
+     let  cliente = usuarios.find(user => user.email === email && user.senha === senha);
+     let clienteLogado= cliente.cpf
     funcionarioLogado = listaFuncionarios.find(func => func.email === email && func.senha === senha);
 
     if (clienteLogado) {
@@ -157,9 +176,17 @@ function fazerLogout() {
     alert("Logout realizado.");
     window.location.href = "../inicio.html";
 }
+
+
 function atualizarDados(novaSenha, novoEndereco, novoEmail, novoTelefone) {
     if (!clienteLogado) {
         alert("Faça login para continuar.");
+        return;
+    }
+    let usuario = buscar_por_cpf(clienteLogado);
+    console.log(usuario)
+    if (!usuario) {
+        alert("Usuário não encontrado.");
         return;
     }
 
@@ -167,23 +194,36 @@ function atualizarDados(novaSenha, novoEndereco, novoEmail, novoTelefone) {
         alert("Preencha um dos campos para atualizar.");
         return;
     }
-    let usuario = buscar_por_cpf(clienteLogado.cpf);
-    console.log(usuario)
-    if (!usuario) {
-        alert("Usuário não encontrado.");
-        return;
+    if (novoEmail) {
+        if (!verificarEmailRepetido(novoEmail) || !checkInputEmail(novoEmail)) {
+            return false
+        } else {
+            usuario.email = novoEmail;
+        }
     }
-    if (novaSenha) usuario.senha = novaSenha;
+    if (novoTelefone) {
+        if (!validarTelefone(novoTelefone)) {
+            return;
+        } else {
+            usuario.telefone = formatarTelefone(novoTelefone)
+        }
+    }
+    if (novaSenha) {
+        if (!validarSenha(novaSenha)) {
+            return
+        } else {
+            //COLOCAR HASH AQUI
+            usuario.senha = novaSenha
+        }
+    }
     if (novoEndereco) usuario.endereco = novoEndereco;
-    if (novoTelefone) usuario.telefone = novoTelefone;
-    if (novoEmail) usuario.email = novoEmail;
 
     salvarDados();
     alert('Dados atualizados com sucesso');
 }//funcionaaaaa
 
 //ATUALIZAR CLIENTE VIA FUNCIONARIO
-function AtualizarDadosCliente(hospedeSelecionado, novaSenha, novoEmail, novoEndereco, novoTelefone) {
+function AtualizarDadosCliente(cpfSelecionado, novaSenha, novoEmail, novoEndereco, novoTelefone) {
     if (!funcionarioLogado) {
         alert("Faça login para continuar.");
         return;
@@ -194,57 +234,79 @@ function AtualizarDadosCliente(hospedeSelecionado, novaSenha, novoEmail, novoEnd
         return;
     }
 
-    let usuario = buscar_por_cpf(hospedeSelecionado);
+    let usuario = buscar_por_cpf(cpfSelecionado);
     if (!usuario) {
         alert("Hóspede não encontrado.");
         return;
     }
 
-    if (novaSenha) usuario.senha = novaSenha;
+    if (novoEmail) {
+        if (!verificarEmailRepetido(novoEmail) || !checkInputEmail(novoEmail)) {
+            return false
+        } else {
+            usuario.email = novoEmail;
+        }
+    }
+    if (novoTelefone) {
+        if (!validarTelefone(novoTelefone)) {
+            return;
+        } else {
+            usuario.telefone = formatarTelefone(novoTelefone)
+        }
+    }
+    if (novaSenha) {
+        if (!validarSenha(novaSenha)) {
+            return
+        } else {
+            //COLOCAR HASH AQUI
+            usuario.senha = novaSenha
+        }
+    }
     if (novoEndereco) usuario.endereco = novoEndereco;
-    if (novoTelefone) usuario.telefone = novoTelefone;
-    if (novoEmail) usuario.email = novoEmail;
+
+
 
     salvarDados();
     alert('Dados atualizados com sucesso');
     return;
 }
-
 function excluirCadastro() {
     if (!clienteLogado) {
         return alert("é necessario estar logado para exluir seu cadastro")
     }
     carregarDados()
-    salvarDados()
     usuarios = usuarios.filter(a => (a.cpf !== clienteLogado.cpf))
-    clienteLogado=null
+    reservas = reservas.filter(reserva => reserva.cpf_cliente !== clienteLogado.cpf);
+    clienteLogado = null
     salvarDados()
     window.location.href = "../inicio.html"
     alert("exclusão feita com sucesso")
 }
-
 function excluirCadastroCliente() {
     if (!funcionarioLogado) {
         return alert("Faça login para continuar");
     }
-    alert("Excluindo cadastro do cliente");
     const aux = document.getElementById("HospedeExcluir").value; // Recebe o CPF do usuário selecionado
     const hospede = buscar_por_cpf(aux);
     if (hospede) {
         usuarios = usuarios.filter(c => c.cpf !== hospede.cpf);
+        reservas = reservas.filter(reserva => reserva.cpf_cliente !== hospede.cpf);
         alert("O cadastro do hospede foi excluído");
         salvarDados();
     } else {
         alert("Hospede não encontrado");
     }
 }
-
 // ========== Funções de Reservas ==========
 function calcularPreco() {
     const nomeQuarto = document.getElementById("nomeQuarto").value;
     const checkIn = new Date(document.getElementById("checkIn").value);
     const checkOut = new Date(document.getElementById("checkOut").value);
-
+    const dataAtual = new Date
+    if (checkIn < dataAtual.setHours(0, 0, 0, 0)) {
+        alert("A data de check-in não pode ser anterior à data atual.");
+        return false;
+    }
     if (checkOut <= checkIn) {
         alert("A data de check-out deve ser maior que a de check-in!");
         return;
@@ -257,9 +319,9 @@ function calcularPreco() {
     document.getElementById("confirmarReserva").style.display = "flex";
     document.getElementById("cancelarReserva").style.display = "flex";
 }
-function achar_quarto_nome(nomeQuarto){
-    const quartoEscolhido= quartos.filter(q=> q.nome == nomeQuarto )
- return quartoEscolhido
+function achar_quarto_nome(nomeQuarto) {
+    const quartoEscolhido = quartos.filter(q => q.nome == nomeQuarto)
+    return quartoEscolhido
 }
 function confirmarReservaHospede() {
     if (funcionarioLogado) {
@@ -283,9 +345,10 @@ function confirmarReservaHospede() {
             if (numeroDoQuarto) {
                 const novaReserva = new Reserva(cpf_encontrado.cpf, numeroDoQuarto, checkIn, checkOut);
                 reservas.push(novaReserva);
-                localStorage.setItem('reservas', JSON.stringify(reservas));
                 alert(`Reserva feita no quarto ${numeroDoQuarto}`);
                 alert("Reserva criada do cliente com sucesso!");
+
+                salvarDados()
                 return;
             } else {
                 alert("Nenhum quarto disponível para o período selecionado.");
@@ -299,6 +362,7 @@ function confirmarReservaHospede() {
     }
 }
 function confirmarReserva() {
+    carregarDados();
     const nomeQuarto = document.getElementById("nomeQuarto").value;
     const checkIn = new Date(document.getElementById("checkIn").value);
     const checkOut = new Date(document.getElementById("checkOut").value);
@@ -313,11 +377,12 @@ function confirmarReserva() {
             }
         }
         if (numeroDoQuarto) {
-            const novaReserva = new Reserva(clienteLogado.cpf, numeroDoQuarto, checkIn, checkOut);
+            const novaReserva = new Reserva(clienteLogado, numeroDoQuarto, checkIn, checkOut);
             reservas.push(novaReserva);
             localStorage.setItem('reservas', JSON.stringify(reservas));
             alert(`Reserva feita no quarto ${numeroDoQuarto}`);
             alert("Reserva criada com sucesso!");
+            salvarDados();
             return;
         } else {
             alert("Nenhum quarto disponível para o período selecionado.");
@@ -334,9 +399,84 @@ function cancelarReserva() {
     document.getElementById("confirmarReserva").style.display = "none";
     document.getElementById("cancelarReserva").style.display = "none";
 }
+//=========== VALIDAÇÕES ============
+function verificarCpfRepetido(cpf) {
+    let cpf_encontrado = buscar_por_cpf(cpf)
+    if (cpf_encontrado) {
+        alert(`o CPF ${cpf} já está cadastrado no sistema`)
+        return false;
+    }
+    return true
+}
+function validarCPF(cpf) {
+    const cpfLimpo = cpf.replace(/\D/g, '');
+    if (cpfLimpo.length !== 11) {
+        alert("cpf invalido")
+        return false;
+    }
+    if (/^(\d)\1*$/.test(cpfLimpo)) {
+        alert("cpf invalido")
+        return false;
+    }
+    return true
+}
+function verificarEmailRepetido(email) {
+    for (let usuario of usuarios) {
+        if (usuario.email === email) {
+            alert(`O email ${email} já está cadastrado no sistema`);
+            return false;
+        }
+    }
+    return true
+}
+function checkInputEmail(email) {
+    // Verifica se o campo email está vazio
+    if (!email) {
+        alert("Digite seu email");
+        return false;
+    }
+    // Valida o formato do email
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!regex.test(email)) {
+        alert("Insira um email válido");
+        return false;
+    }
+    return true;
+}
+// Função para formatar número de telefone brasileiro
+function formatarTelefone(numero) {
+    // Remove todos os caracteres não numéricos
+    const numeroLimpo = numero.replace(/\D/g, '');
+    // Formata como (XX) XXXXX-XXXX
+    return numeroLimpo.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+}
+// Função para validar número de telefone brasileiro
+function validarTelefone(numero) {
+    // Remove todos os caracteres não numéricos
+    const numeroLimpo = numero.replace(/\D/g, '');
+    // Verifica se o número tem 11 dígitos (para celulares com DDD)
+    const regexTelefone = /^\d{11}$/;
+    if (regexTelefone.test(numeroLimpo)) {
+        return true
+    }
+    return false
+}
 
+function validarSenha(senha) {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    if (regex.test(senha)) {
+        return true
+    }
+    return false
+}
 
-
+function checkInputEndereço(endereco) {
+    if (!endereco) {
+        alert("digite seu endereço")
+        return false
+    }
+    return true
+}
 // ========== Manipulação do DOM ==========
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -354,46 +494,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const telefone = document.getElementById('telefone').value;
             const senha = document.getElementById('senha').value;
 
-
-            function checkInputCPF(cpf) {
-                let cpf_encontrado = buscar_por_cpf(cpf)
-                if (cpf_encontrado) {
-                    alert(`o CPF ${cpf} já está cadastrado no sistema`)
-                    return false;
-                }
-                return true
-            }
-
-
-            function checkInputEmail(email) {
-                let usuario
-                // Verifica se o campo email está vazio
-                if (!email) {
-                    alert("Digite seu email");
-                    return false;
-                }
-
-                // Valida o formato do email
-                const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!regex.test(email)) {
-                    alert("Insira um email válido");
-                    return false;
-                }
-
-                // Verifica se o email já está cadastrado
-                for (usuario of usuarios) {
-                    if (usuario.email === email) {
-                        alert(`O email ${email} já está cadastrado no sistema`);
-                        return false;
-                    }
-                }
-                // Se todas as verificações passarem
-                return true;
-            }
-            if (!checkInputCPF(cpf) || !checkInputEmail(email)) {
+            if (!verificarCpfRepetido(cpf) || !checkInputEmail(email)) {
                 return;
             }
-            realizarCadastro(nome, cpf, data, endereco, email, telefone, senha);
+            let telefoneformatado = formatarTelefone(telefone)
+            realizarCadastro(nome, cpf, data, endereco, email, telefoneformatado, senha);
 
         });
 
@@ -437,20 +542,49 @@ document.addEventListener("DOMContentLoaded", () => {
     const formExcluirCadastro = document.getElementById("excluirCadastroa");
     if (formExcluirCadastro) {
         console.log('Inicializando exclusão de cadastro');
-        alert("Inicializando exclusão de cadastro");
-    
+
         formExcluirCadastro.addEventListener("submit", event => {
             event.preventDefault();
             alert("Processando exclusão");
             excluirCadastroCliente();
         });
     }
+
+
+});
+
+// LOGS
+
+function gerarLog(operaco, cliente){
+    const data_atual = new Date();
+    const ano = data_atual.getFullYear();
+    const mes = data_atual.getMonth()+1;
+    const dia = data_atual.getDate();
+    const hora = data_atual.getHours();
+    const minuto = data_atual.getMinutes();
+    const segundo =  data_atual.getSeconds();
+    if(clienteLogado){
+        let user = buscar_por_cpf(clienteLogado)
+        let log = (`${user.nome} do cpf ${user.cpf} fez ${operaco} na data: ${dia}/${mes}/${ano} ${hora}:${minuto}:${segundo}`)
+        logs.push(log);
+        alert("operação registrada no site")
+        localStorage.setItem("logs", JSON.stringify(logs))
     
+    }
+    if(operaco =='cadastro'){
+        let log = (`${novoUsuario.nome} do cpf ${novoUsuario.cpf} fez ${operaco} na data: ${dia}/${mes}/${ano} ${hora}:${minuto}:${segundo}`)
+        alert("operação registrada no site")
+        localStorage.setItem("logs", JSON.stringify(logs))
+    }
+    if(funcionarioLogado){
+        let log = (`Funcionario: ${funcionarioLogado.nome} fez ${operaco} de ${cliente} na data: ${dia}/${mes}/${ano} ${hora}:${minuto}:${segundo}`)
+        logs.push(log);
+        alert("operação registrada no site")
+        localStorage.setItem("logs", JSON.stringify(logs))
 
-        });
-
-
-// Funções para navegação Funcionario]
+    }else{alert("probllema ao fazer registro da operação ")}
+    }
+// Funções para navegação Funcionario
 function irparaLogin() {
     if (funcionarioLogado || clienteLogado) {
         return alert('Você não pode fazer login estando logado')
@@ -494,7 +628,6 @@ function irParaAtualizarCadastro() {
 function irParaAcomodacoesFunc() {
     window.location.href = 'quartosFunc.html';
 }
-
 // Nav Cliente
 function irParaAcomodacoes() {
     window.location.href = 'quartos.html';
