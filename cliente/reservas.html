@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservas - Hotel</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+    <header>
+        <img src="../imagens/alvorada_azul.png" width="200px">
+        <nav>
+            <a href="../login.html">Login</a>
+            <a href="../inicio.html">Início</a>
+            <a href="quartos.html">Acomodações</a>
+            <a href="reservas.html" >Nova Reserva</a >
+            <a href="atualizarDados.html" >Atualizar Cadastro</a >
+            <button onclick="fazerLogout()">Fazer Logout</button>
+        </nav>
+      </header>
+
+    <main class="login-box">
+        <h1>Reservar Quarto</h1>
+        <form id="formReserva" onsubmit="event.preventDefault(); calcularPreco();">
+            <label for="nomeQuarto">Tipo de Quarto:</label>
+            <select id="nomeQuarto" required>
+                <option value="Suite Luxo" id ="Suite Luxo"> Suite Luxo(R$250/dia)</option>
+                <option value="Suite Master" id ="Suite Master" >Suite Master (R$300/dia)</option>
+                <option value="Suite Simples" id="Suite Simples">Suite Simples (R$150/dia)</option>
+                <option value="Suite Presidencial" id="Suite Presidencial">Suite Presidencial (R$500/dia)</option>
+                <option value="Suite Executiva" id ="Suite Executiva">Suite Executiva (R$350/dia)</option>
+                <option value="Family Suite" id="Family Suite">Family Suite (R$400/dia)</option>
+            </select>
+
+            <label for="checkIn">Data Check-in:</label>
+            <input type="date" id="checkIn" required>
+
+            <label for="checkOut">Data Check-out:</label>
+            <input type="date" id="checkOut" required>
+
+            <button type="submit">Calcular Preço</button>
+        </form>
+        <p id="precoTotal" style="margin-top: 20px; font-weight: bold;"></p>
+        <div id="buttonsReserva">
+            <button id="confirmarReserva" style="display: none;" onclick="confirmarReserva()" >ConfirmarReserva</button>
+            <button id="cancelarReserva" style="display: none;" onclick="cancelarReserva()">Cancelar Reserva</button>
+        </div>
+
+    </main>
+    <script src="../script.js"></script>
+    <footer>
+        <section class="contato">
+          <div class="info-section">
+            <h1 id="contatonome">Fale Conosco</h1>
+            <p>contato@hotelalvorada.com</p>
+            <p>© 2024 Hotel Alvorada. Todos os direitos reservados.</p>
+          </div>
+        </section>
+      </footer>
+</body>
+
+</html>
